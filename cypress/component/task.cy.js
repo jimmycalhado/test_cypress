@@ -1,55 +1,39 @@
-describe('Funções de Manipulação de Tarefas', () => {
+import App from '../../src/App'; // Ajuste o caminho conforme necessário
+import { mount } from 'cypress/react';
 
-    it('addTask() deve adicionar uma tarefa ao LocalStorage', () => {
-      const tasks = ['Tarefa 1'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      const newTask = 'Tarefa 2';
-      addTask(newTask);  // Chama a função diretamente
-  
-      const storedTasks = JSON.parse(localStorage.getItem('tasks'));
-      expect(storedTasks).to.have.length(2);
-      expect(storedTasks).to.include(newTask);
-    });
-  
-    it('removeTask() deve remover uma tarefa do LocalStorage', () => {
-      const tasks = ['Tarefa 1', 'Tarefa 2'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      removeTask(0);  // Remove a primeira tarefa
-  
-      const storedTasks = JSON.parse(localStorage.getItem('tasks'));
-      expect(storedTasks).to.have.length(1);
-      expect(storedTasks).not.to.include('Tarefa 1');
-    });
-  
-    it('loadTasks() deve carregar tarefas do LocalStorage', () => {
-      const tasks = ['Tarefa 1', 'Tarefa 2'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      const taskList = loadTasks();  // Chama a função diretamente
-      expect(taskList).to.have.length(2);
-      expect(taskList[0]).to.equal('Tarefa 1');
-      expect(taskList[1]).to.equal('Tarefa 2');
-    });
-  
-    it('Não deve adicionar tarefas vazias ao LocalStorage', () => {
-      const tasks = ['Tarefa 1'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      const emptyTask = '';  // Tarefa vazia
-      addTask(emptyTask);  // Chama a função diretamente
-  
-      const storedTasks = JSON.parse(localStorage.getItem('tasks'));
-      expect(storedTasks).to.have.length(1);  // Só deve ter uma tarefa
-      expect(storedTasks).to.include('Tarefa 1');
-    });
-  
-    it('loadTasks() deve retornar um array vazio se não houver tarefas', () => {
-      localStorage.removeItem('tasks');  // Remove qualquer item existente no LocalStorage
-  
-      const taskList = loadTasks();  // Chama a função diretamente
-      expect(taskList).to.deep.equal([]);  // Espera um array vazio
-    });
-  
+describe('Lista de Tarefas', () => {
+  beforeEach(() => {
+    cy.clearLocalStorage(); // Limpa LocalStorage antes de cada teste
+    cy.visit('/'); // Visita a página inicial para garantir que o ambiente esteja carregado
   });
+
+  it('Deve adicionar uma tarefa à lista e ao LocalStorage', () => {
+    cy.mount(<App />);
+
+    // Verifica se o campo de input existe
+    cy.get("input").should("exist").type("Nova Tarefa");
+    cy.get("button").contains("Adicionar").click();
+
+    // Verifica se a tarefa aparece na lista
+    cy.get('[data-testid="task-item"]').should("contain", "Nova Tarefa");
+
+    // Verifica se o LocalStorage foi atualizado
+    cy.window().then((window) => {
+      const tasks = window.localStorage.getItem("tasks");
+      expect(tasks).to.include("Nova Tarefa");
+    });
+  });
+
+  it('Deve remover uma tarefa da lista', () => {
+    cy.mount(<App />);
+
+    cy.get("input").should("exist").type("Tarefa para Remover");
+    cy.get("button").contains("Adicionar").click();
+
+    // Clica no botão de remover (X)
+    cy.get('[data-testid="remove-btn"]').click();
+
+    // Verifica que a tarefa foi removida da lista
+    cy.get('[data-testid="task-item"]').should("not.exist");
+  });
+});
