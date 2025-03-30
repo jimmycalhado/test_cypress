@@ -1,4 +1,6 @@
 const { defineConfig } = require("cypress");
+const path = require('path');
+const webpackConfig = require("./webpack.config");
 
 module.exports = defineConfig({
   e2e: {
@@ -12,16 +14,13 @@ module.exports = defineConfig({
       return config;
     },
   },
-  e2e: {
-    baseUrl: 'http://localhost:3000',
-    specPattern: "cypress/component/**/*.cy.js",
-    supportFile: "cypress/support/component.js",
-    setupNodeEvents(on, config) {
-      on("before:run", () => {
-        console.log("Iniciando os testes Unitários...");
-      });
-      return config;
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'webpack',
+      webpackConfig
     },
+    supportFile: "cypress/support/component.js",
+    specPattern:"cypress/component/**/*.cy.js",
   },
-  },
-);
+});

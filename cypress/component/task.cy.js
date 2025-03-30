@@ -1,55 +1,71 @@
-describe('Funções de Manipulação de Tarefas', () => {
+import { addTask, removeTask, loadTasks } from "../../src/utils/taskManager";
 
-    it('addTask() deve adicionar uma tarefa ao LocalStorage', () => {
-      const tasks = ['Tarefa 1'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      const newTask = 'Tarefa 2';
-      addTask(newTask);  // Chama a função diretamente
-  
-      const storedTasks = JSON.parse(localStorage.getItem('tasks'));
+describe("Funções de Manipulação de Tarefas", () => {
+  beforeEach(() => {
+    localStorage.clear(); // Garante um ambiente limpo antes de cada teste
+  });
+
+  it("addTask() deve adicionar uma tarefa ao LocalStorage", () => {
+    localStorage.setItem("tasks", JSON.stringify(["Tarefa 1"]));
+    
+    const newTask = "Tarefa 2";
+    cy.wrap(null).then(() => {
+      addTask(newTask);
+    });
+
+    cy.wrap(localStorage.getItem("tasks")).then((storedTasks) => {
+      storedTasks = JSON.parse(storedTasks);
       expect(storedTasks).to.have.length(2);
       expect(storedTasks).to.include(newTask);
     });
-  
-    it('removeTask() deve remover uma tarefa do LocalStorage', () => {
-      const tasks = ['Tarefa 1', 'Tarefa 2'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      removeTask(0);  // Remove a primeira tarefa
-  
-      const storedTasks = JSON.parse(localStorage.getItem('tasks'));
-      expect(storedTasks).to.have.length(1);
-      expect(storedTasks).not.to.include('Tarefa 1');
-    });
-  
-    it('loadTasks() deve carregar tarefas do LocalStorage', () => {
-      const tasks = ['Tarefa 1', 'Tarefa 2'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      const taskList = loadTasks();  // Chama a função diretamente
-      expect(taskList).to.have.length(2);
-      expect(taskList[0]).to.equal('Tarefa 1');
-      expect(taskList[1]).to.equal('Tarefa 2');
-    });
-  
-    it('Não deve adicionar tarefas vazias ao LocalStorage', () => {
-      const tasks = ['Tarefa 1'];
-      localStorage.setItem('tasks', JSON.stringify(tasks));  // Simula o LocalStorage
-  
-      const emptyTask = '';  // Tarefa vazia
-      addTask(emptyTask);  // Chama a função diretamente
-  
-      const storedTasks = JSON.parse(localStorage.getItem('tasks'));
-      expect(storedTasks).to.have.length(1);  // Só deve ter uma tarefa
-      expect(storedTasks).to.include('Tarefa 1');
-    });
-  
-    it('loadTasks() deve retornar um array vazio se não houver tarefas', () => {
-      localStorage.removeItem('tasks');  // Remove qualquer item existente no LocalStorage
-  
-      const taskList = loadTasks();  // Chama a função diretamente
-      expect(taskList).to.deep.equal([]);  // Espera um array vazio
-    });
-  
   });
+
+  it("removeTask() deve remover uma tarefa do LocalStorage", () => {
+    localStorage.setItem("tasks", JSON.stringify(["Tarefa 1", "Tarefa 2"]));
+
+    cy.wrap(null).then(() => {
+      removeTask(0);
+    });
+
+    cy.wrap(localStorage.getItem("tasks")).then((storedTasks) => {
+      storedTasks = JSON.parse(storedTasks);
+      expect(storedTasks).to.have.length(1);
+      expect(storedTasks).not.to.include("Tarefa 1");
+    });
+  });
+
+  it("loadTasks() deve carregar tarefas do LocalStorage", () => {
+    const tasks = ["Tarefa 1", "Tarefa 2"];
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    cy.wrap(null).then(() => {
+      const taskList = loadTasks();
+      expect(taskList).to.have.length(2);
+      expect(taskList[0]).to.equal("Tarefa 1");
+      expect(taskList[1]).to.equal("Tarefa 2");
+    });
+  });
+
+  it("Não deve adicionar tarefas vazias ao LocalStorage", () => {
+    localStorage.setItem("tasks", JSON.stringify(["Tarefa 1"]));
+
+    cy.wrap(null).then(() => {
+      addTask("");
+    });
+
+    cy.wrap(localStorage.getItem("tasks")).then((storedTasks) => {
+      storedTasks = JSON.parse(storedTasks);
+      expect(storedTasks).to.have.length(1);
+      expect(storedTasks).to.include("Tarefa 1");
+    });
+  });
+
+  it("loadTasks() deve retornar um array vazio se não houver tarefas", () => {
+    localStorage.removeItem("tasks");
+
+    cy.wrap(null).then(() => {
+      const taskList = loadTasks();
+      expect(taskList).to.deep.equal([]);
+    });
+  });
+});
